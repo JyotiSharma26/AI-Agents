@@ -1,0 +1,17 @@
+public class NativeFunctions {
+
+    [SKFunction, Description("Retrieve content from local file")]
+    public async Task<string> RetrieveLocalFile(string fileName, int maxSize = 5000)
+    {
+        string content = await File.ReadAllTextAsync(fileName);
+        if (content.Length <= maxSize) return content;
+        return content.Substring(0, maxSize);
+    }
+}
+
+//Import native function
+string plugInName = "NativeFunction";
+string functionName = "RetrieveLocalFile";
+
+var nativeFunctions = new NativeFunctions();
+kernel.ImportFunctions(nativeFunctions, plugInName);
