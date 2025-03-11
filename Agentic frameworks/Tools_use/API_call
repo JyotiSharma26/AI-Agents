@@ -1,0 +1,25 @@
+import os
+from azure.ai.projects import AIProjectClient
+from azure.identity import DefaultAzureCredential
+from fecth_sales_data_functions import fetch_sales_data_using_sqlite_query # fetch_sales_data_using_sqlite_query function which can be found in a fetch_sales_data_functions.py file.
+from azure.ai.projects.models import ToolSet, FunctionTool, CodeInterpreterTool
+
+project_client = AIProjectClient.from_connection_string(
+    credential=DefaultAzureCredential(),
+    conn_str=os.environ["PROJECT_CONNECTION_STRING"],
+)
+
+# Initialize function calling agent with the fetch_sales_data_using_sqlite_query function and adding it to the toolset
+fetch_data_function = FunctionTool(fetch_sales_data_using_sqlite_query)
+toolset = ToolSet()
+toolset.add(fetch_data_function)
+
+# Initialize Code Interpreter tool and adding it to the toolset. 
+code_interpreter = code_interpreter = CodeInterpreterTool()
+toolset = ToolSet()
+toolset.add(code_interpreter)
+
+agent = project_client.agents.create_agent(
+    model="gpt-4o-mini", name="my-agent", instructions="You are helpful agent", 
+    toolset=toolset
+)
