@@ -9,7 +9,7 @@ project_client = AIProjectClient.from_connection_string(
     conn_str=os.environ["PROJECT_CONNECTION_STRING"],
 )
 
-# Initialize function calling agent with the fetch_sales_data_using_sqlite_query function and adding it to the toolset
+
 fetch_data_function = FunctionTool(fetch_sales_data_using_sqlite_query)
 toolset = ToolSet()
 toolset.add(fetch_data_function)

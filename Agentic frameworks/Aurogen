@@ -1,0 +1,36 @@
+search_service_endpoint = os.getenv("AZURE_SEARCH_SERVICE_ENDPOINT")
+search_api_key = os.getenv("AZURE_SEARCH_API_KEY")
+index_name = "travel-documents"
+
+search_client = SearchClient(
+    endpoint=search_service_endpoint,
+    index_name=index_name,
+    credential=AzureKeyCredential(search_api_key)
+)
+
+index_client = SearchIndexClient(
+    endpoint=search_service_endpoint,
+    credential=AzureKeyCredential(search_api_key)
+)
+
+fields = [
+    SimpleField(name="id", type=SearchFieldDataType.String, key=True),
+    SearchableField(name="content", type=SearchFieldDataType.String)
+]
+
+index = SearchIndex(name=index_name, fields=fields)
+
+
+index_client.create_index(index)
+
+
+documents = [
+    {"id": "1", "content": "Contoso Travel offers luxury vacation packages to exotic destinations worldwide."},
+    {"id": "2", "content": "Our premium travel services include personalized itinerary planning and 24/7 concierge support."},
+    {"id": "3", "content": "Contoso's travel insurance covers medical emergencies, trip cancellations, and lost baggage."},
+    {"id": "4", "content": "Popular destinations include the Maldives, Swiss Alps, and African safaris."},
+    {"id": "5", "content": "Contoso Travel provides exclusive access to boutique hotels and private guided tours."}
+]
+
+# Add documents to the index
+search_client.upload_documents(documents)
