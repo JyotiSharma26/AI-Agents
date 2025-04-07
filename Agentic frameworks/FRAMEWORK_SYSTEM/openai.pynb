@@ -1,0 +1,22 @@
+from pydantic import BaseModel
+from enum import Enum
+from typing import List, Optional, Union
+
+class AgentEnum(str, Enum):
+    FlightBooking = "flight_booking"
+    HotelBooking = "hotel_booking"
+    CarRental = "car_rental"
+    ActivitiesBooking = "activities_booking"
+    DestinationInfo = "destination_info"
+    DefaultAgent = "default_agent"
+    GroupChatManager = "group_chat_manager"
+
+# Travel SubTask Model
+class TravelSubTask(BaseModel):
+    task_details: str
+    assigned_agent: AgentEnum # we want to assign the task to the agent
+
+class TravelPlan(BaseModel):
+    main_task: str
+    subtasks: List[TravelSubTask]
+    is_greeting: bool

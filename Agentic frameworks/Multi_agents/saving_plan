@@ -1,0 +1,78 @@
+class SavePlugin:
+    """Save Plugin for customers"""
+    @kernel_function(description="saving plan")
+    async def saving_plan(self,tripplan: Annotated[str, "The content of trip plan"])-> Annotated[str, "Return status of save content"]:
+
+        async with (
+            DefaultAzureCredential() as creds,
+            AzureAIAgent.create_client(
+                credential=creds,
+                conn_str=ai_agent_settings.project_connection_string.get_secret_value(),
+            ) as client,
+        ):
+
+            code_interpreter = CodeInterpreterTool()
+            
+            agent_definition = await client.agents.create_agent(
+                model=ai_agent_settings.model_deployment_name,
+                tools=code_interpreter.definitions,
+                tool_resources=code_interpreter.resources,
+            )
+
+
+            agent = AzureAIAgent(
+                client=client,
+                definition=agent_definition,
+            )
+
+            thread = await client.agents.create_thread()
+
+
+            user_inputs = [
+                """
+            
+                        You are my Python programming assistant. Generate code,save """+ tripplan +
+                        
+                    """    
+                        and execute it according to the following requirements
+
+                        1. Save blog content to trip-{YYMMDDHHMMSS}.md
+
+                        2. give me the download this file link
+                    """
+            ]
+
+
+
+            try:
+                for user_input in user_inputs:
+                    # Add the user input as a chat message
+                    await agent.add_chat_message(
+                        thread_id=thread.id, message=ChatMessageContent(role=AuthorRole.USER, content=user_input)
+                    )
+                    print(f"# User: '{user_input}'")
+                    # Invoke the agent for the specified thread
+                    async for content in agent.invoke(thread_id=thread.id):
+                        if content.role != AuthorRole.TOOL:
+                            print(f"# Agent: {content.content}")
+
+                    
+                    messages = await client.agents.list_messages(thread_id=thread.id)
+
+                    # OpenAIPageableListOfThreadMessage
+                    # OpenAIPageableListOfThreadMessage
+
+
+                    for file_path_annotation in messages.file_path_annotations:
+
+                            file_name = os.path.basename(file_path_annotation.text)
+
+                            await client.agents.save_file(file_id=file_path_annotation.file_path.file_id, file_name=file_name,target_dir="./trip")
+
+                    
+            finally:
+                await client.agents.delete_thread(thread.id)
+                await client.agents.delete_agent(agent.id)
+
+
+        return "Saved"

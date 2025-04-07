@@ -1,0 +1,87 @@
+
+class BookingPlugin:
+    """Booking Plugin for customers"""
+    @kernel_function(description="booking hotel")
+    def booking_hotel(self,query: Annotated[str, "The name of the city"], check_in_date: Annotated[str, "Hotel Check-in Time"], check_out_date: Annotated[str, "Hotel Check-in Time"])-> Annotated[str, "Return the result of booking hotel infomation"]:
+
+        params = {
+            "engine": "google_hotels",
+            "q": query,
+            "check_in_date": check_in_date,
+            "check_out_date": check_out_date,
+            "adults": "2",
+            "currency": "USD",
+            "gl": "us",
+            "hl": "en",
+            "api_key": SERPAPI_SEARCH_API_KEY
+        }
+
+        response = requests.get(SERPAPI_SEARCH_ENDPOINT, params=params)
+        if response.status_code == 200:
+            response = response.json()
+            return response["properties"]
+        else:
+            return None
+
+    
+    @kernel_function(description="booking fight")
+    def  booking_fight(self,origin: Annotated[str, "The name of Departure"], destination: Annotated[str, "The name of Destination"], outbound_date: Annotated[str, "The date of outbound"], return_date: Annotated[str, "The date of Return_date"])-> Annotated[str, "Return the result of booking fight infomation"]:
+        
+        go_params = {
+            "engine": "google_flights",   
+            "departure_id": origin,
+            "arrival_id": destination,
+            "outbound_date": outbound_date,
+            "return_date": return_date,  
+            "currency": "USD",
+            "hl": "en",
+            "api_key": SERPAPI_SEARCH_API_KEY  
+        }
+
+        print(go_params)
+
+        go_response = requests.get(SERPAPI_SEARCH_ENDPOINT, params=go_params)
+
+
+        result = ''
+
+        if go_response.status_code == 200:
+            response = go_response.json()
+
+            result += "# outbound \n " + str(response)
+        else:
+            print('error!!!')
+            # return None
+
+        
+        back_params = {
+            "engine": "google_flights",   
+            "departure_id": destination,
+            "arrival_id": origin,
+            "outbound_date": return_date,
+            "return_date": return_date,  
+            "currency": "USD",
+            "hl": "en",
+            "api_key": SERPAPI_SEARCH_API_KEY  
+        }
+
+
+        print(back_params)
+
+
+        back_response = requests.get(SERPAPI_SEARCH_ENDPOINT, params=back_params)
+
+
+
+        if back_response.status_code == 200:
+            response = back_response.json()
+
+            result += "\n # return \n"  + str(response)
+
+        else:
+            print('error!!!')
+            # return None
+        
+        print(result)
+
+        return result
